@@ -1,39 +1,15 @@
-from flask import Flask, render_template, request, jsonify, redirect, send_file
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, request, jsonify, redirect, send_file
+from datetime import datetime, timedelta
 import string
 import random
 import re
-from datetime import datetime, timezone, timedelta
 import os
-import logging
-
-# Thiết lập logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
+from vercel_kv import VercelKV
 
 app = Flask(__name__)
 
-# Sử dụng biến môi trường cho URI cơ sở dữ liệu
-database_url = os.environ.get('DATABASE_URL', 'postgres://neondb_owner:npg_O2vKW0eoQulF@ep-dry-recipe-a1hoplhj-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require')
-
-# Nếu URL bắt đầu bằng postgres://, thay thế bằng postgresql://
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    "connect_args": {"sslmode": "require"}
-}
-db = SQLAlchemy(app)
-
-class Url(db.Model):
-    __tablename__ = 'url'
-    id = db.Column(db.Integer, primary_key=True)
-    original_url = db.Column(db.String(500), nullable=False)
-    short_code = db.Column(db.String(10), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
-    clicks = db.Column(db.Integer, default=0)
+# Khởi tạo Vercel KV
+kv = VercelKV()
 
 def generate_short_code():
     characters = string.ascii_letters + string.digits
@@ -47,12 +23,10 @@ def index():
     return send_file('index.html')
 
 @app.route('/shorten', methods=['POST'])
-def shorten_url():
+async def shorten_url():
     data = request.json
     original_url = data.get('url')
     custom_code = data.get('custom_code')
-
-    logger.debug(f"Received request: URL={original_url}, Custom Code={custom_code}")
 
     if not original_url:
         return jsonify({"error": "Please enter a valid URL."}), 400
@@ -60,65 +34,50 @@ def shorten_url():
     if custom_code:
         if not is_valid_custom_code(custom_code):
             return jsonify({"error": "Invalid custom code. Use only letters, numbers, hyphens, and underscores."}), 400
-        existing_url = Url.query.filter_by(short_code=custom_code).first()
+        existing_url = await kv.get(f"url:{custom_code}")
         if existing_url:
             return jsonify({"error": "Custom code already in use. Please choose another."}), 400
         short_code = custom_code
     else:
         while True:
             short_code = generate_short_code()
-            existing_url = Url.query.filter_by(short_code=short_code).first()
+            existing_url = await kv.get(f"url:{short_code}")
             if not existing_url:
                 break
 
-    new_url = Url(original_url=original_url, short_code=short_code)
-    db.session.add(new_url)
-    db.session.commit()
+    await kv.set(f"url:{short_code}", {
+        "original_url": original_url,
+        "created_at": datetime.utcnow().isoformat(),
+        "clicks": 0
+    })
     return jsonify({"short_url": request.host_url + short_code, "original_url": original_url})
 
 @app.route('/<short_code>')
-def redirect_to_url(short_code):
-    url = Url.query.filter_by(short_code=short_code).first()
-    if url:
-        url.clicks += 1
-        db.session.commit()
-        return redirect(url.original_url)
+async def redirect_to_url(short_code):
+    url_data = await kv.get(f"url:{short_code}")
+    if url_data:
+        url_data['clicks'] += 1
+        await kv.set(f"url:{short_code}", url_data)
+        return redirect(url_data['original_url'])
     return "URL not found", 404
 
 @app.route('/stats')
-def get_stats():
-    end_date = datetime.now(timezone.utc)
+async def get_stats():
+    end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=7)
-    
-    urls = Url.query.filter(Url.created_at >= start_date).all()
     
     labels = [(end_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7, 0, -1)]
     clicks = [0] * 7
     
-    for url in urls:
-        day_index = (end_date - url.created_at).days
-        if 0 <= day_index < 7:
-            clicks[6 - day_index] += url.clicks
+    async for key in kv.keys("url:*"):
+        url_data = await kv.get(key)
+        created_at = datetime.fromisoformat(url_data['created_at'])
+        if start_date <= created_at <= end_date:
+            day_index = (end_date - created_at).days
+            if 0 <= day_index < 7:
+                clicks[6 - day_index] += url_data['clicks']
     
     return jsonify({"labels": labels, "clicks": clicks})
 
-@app.route('/check_db')
-def check_db():
-    try:
-        db.session.query(Url).first()
-        return "Database connection successful", 200
-    except Exception as e:
-        logger.error(f"Database connection failed: {str(e)}")
-        return f"Database connection failed: {str(e)}", 500
-
-def init_db():
-    with app.app_context():
-        db.create_all()
-        logger.info("Database tables created successfully")
-
 if __name__ == '__main__':
-    try:
-        init_db()
-    except Exception as e:
-        logger.error(f"Error initializing database: {str(e)}")
     app.run(debug=True)
