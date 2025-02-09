@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, send_file
+from flask import Flask, render_template, request, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 import string
 import random
@@ -13,8 +13,14 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Update the database URI to use the Neon PostgreSQL database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_z9eJVvl8yxqK@ep-twilight-shadow-a4cfray6-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require'
+# Use the environment variable for the database URI
+database_url = os.environ.get('DATABASE_URL', 'postgres://neondb_owner:npg_O2vKW0eoQulF@ep-dry-recipe-a1hoplhj-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require')
+
+# If the URL starts with postgres://, replace it with postgresql://
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -35,7 +41,7 @@ def is_valid_custom_code(code):
 
 @app.route('/')
 def index():
-    return send_file('index.html')
+    return render_template('index.html')
 
 @app.route('/shorten', methods=['POST'])
 def shorten_url():
