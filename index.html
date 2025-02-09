@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Advanced URL Shortener</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -66,15 +68,16 @@
             z-index: 1;
         }
 
-        .input:focus ~ .label,
-        .input:not(:placeholder-shown) ~ .label {
+        .input:focus~.label,
+        .input:not(:placeholder-shown)~.label {
             top: -10px;
             transform: scale(0.8);
             background-color: var(--background-color);
             padding: 0 5px;
         }
 
-        .topline, .underline {
+        .topline,
+        .underline {
             position: absolute;
             content: "";
             background-color: var(--primary-color);
@@ -93,11 +96,11 @@
             bottom: 0;
         }
 
-        .input:focus ~ .topline {
+        .input:focus~.topline {
             width: 35%;
         }
 
-        .input:focus ~ .underline {
+        .input:focus~.underline {
             width: 100%;
         }
 
@@ -140,8 +143,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .result-container {
@@ -224,8 +232,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .fade-in {
@@ -299,6 +314,7 @@
             .desktop-menu {
                 display: none;
             }
+
             .mobile-menu {
                 display: block;
             }
@@ -322,7 +338,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(to right, rgba(11, 36, 71, 0.1) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(11, 36, 71, 0.1) 1px, transparent 1px);
             background-size: 20px 20px;
@@ -331,13 +347,11 @@
         }
 
         .pixel-corners {
-            clip-path: 
-                polygon(
-                    0 5px, 5px 5px, 5px 0, 
-                    calc(100% - 5px) 0, calc(100% - 5px) 5px, 100% 5px, 
-                    100% calc(100% - 5px), calc(100% - 5px) calc(100% - 5px), calc(100% - 5px) 100%, 
-                    5px 100%, 5px calc(100% - 5px), 0 calc(100% - 5px)
-                );
+            clip-path:
+                polygon(0 5px, 5px 5px, 5px 0,
+                    calc(100% - 5px) 0, calc(100% - 5px) 5px, 100% 5px,
+                    100% calc(100% - 5px), calc(100% - 5px) calc(100% - 5px), calc(100% - 5px) 100%,
+                    5px 100%, 5px calc(100% - 5px), 0 calc(100% - 5px));
         }
 
         .animate-fade-in {
@@ -349,8 +363,15 @@
         }
 
         @keyframes slideIn {
-            from { transform: translateX(-20px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
 
         .animate-pop {
@@ -358,12 +379,21 @@
         }
 
         @keyframes pop {
-            0% { transform: scale(0.8); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(0.8);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
     </style>
 </head>
+
 <body class="min-h-screen flex flex-col">
     <div class="background-image"></div>
     <header class="bg-opacity-50 backdrop-filter backdrop-blur-lg shadow-md pixel-corners">
@@ -371,9 +401,12 @@
             <h1 class="text-2xl font-bold animate-pop" style="color: var(--primary-color);">URL Shortener</h1>
             <nav class="desktop-menu">
                 <ul class="flex space-x-4">
-                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('shorten')">Shorten</a></li>
-                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('history')">History</a></li>
-                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('stats')">Stats</a></li>
+                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);"
+                            onclick="showTab('shorten')">Shorten</a></li>
+                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);"
+                            onclick="showTab('history')">History</a></li>
+                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);"
+                            onclick="showTab('stats')">Stats</a></li>
                 </ul>
             </nav>
             <div class="flex items-center">
@@ -389,9 +422,12 @@
         </div>
         <div id="mobileNav" class="hidden bg-opacity-50 backdrop-filter backdrop-blur-lg shadow-md">
             <ul class="py-2">
-                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('shorten')">Shorten</a></li>
-                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('history')">History</a></li>
-                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('stats')">Stats</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in"
+                        style="color: var(--primary-color);" onclick="showTab('shorten')">Shorten</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in"
+                        style="color: var(--primary-color);" onclick="showTab('history')">History</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in"
+                        style="color: var(--primary-color);" onclick="showTab('stats')">Stats</a></li>
             </ul>
         </div>
     </header>
@@ -407,34 +443,42 @@
                     <i data-lucide="link" class="icon"></i>
                 </div>
                 <div class="input-container pixel-corners animate-fade-in">
-                    <input type="text" name="custom_code" id="custom_code" class="input" placeholder=" " pattern="^[a-zA-Z0-9-_]+$">
+                    <input type="text" name="custom_code" id="custom_code" class="input" placeholder=" "
+                        pattern="^[a-zA-Z0-9-_]+$">
                     <label for="custom_code" class="label">Custom short code (optional)</label>
                     <div class="topline"></div>
                     <div class="underline"></div>
                     <i data-lucide="tag" class="icon"></i>
                 </div>
-                <p class="custom-url-info">Leave blank for a randomly generated code. Use only letters, numbers, hyphens, and underscores.</p>
+                <p class="custom-url-info">Leave blank for a randomly generated code. Use only letters, numbers,
+                    hyphens, and underscores.</p>
                 <button type="submit" class="btn w-full flex items-center justify-center pixel-corners animate-pop">
                     <i data-lucide="scissors" class="mr-2"></i> Shorten URL
                 </button>
             </form>
 
             <div id="result" class="result-container hidden fade-in max-w-md mx-auto mt-8 pixel-corners">
-                <h2 class="text-xl font-semibold mb-4 flex items-center animate-slide-in" style="color: var(--primary-color);">
+                <h2 class="text-xl font-semibold mb-4 flex items-center animate-slide-in"
+                    style="color: var(--primary-color);">
                     <i data-lucide="check-circle" class="mr-2"></i> Your shortened URL:
                 </h2>
                 <div class="short-url-display pixel-corners animate-fade-in">
                     <input type="text" id="shortUrl" readonly class="flex-grow bg-transparent">
-                    <button onclick="copyToClipboard()" class="copy-btn bg-opacity-50 backdrop-filter backdrop-blur-lg px-4 py-2 ml-2 hover:bg-opacity-75 transition duration-300 flex items-center relative pixel-corners" style="background-color: var(--primary-color);">
+                    <button onclick="copyToClipboard()"
+                        class="copy-btn bg-opacity-50 backdrop-filter backdrop-blur-lg px-4 py-2 ml-2 hover:bg-opacity-75 transition duration-300 flex items-center relative pixel-corners"
+                        style="background-color: var(--primary-color);">
                         <i data-lucide="copy" class="mr-2"></i> Copy
                         <span class="copy-tooltip">Copy to clipboard</span>
                     </button>
                 </div>
                 <div class="qr-container pixel-corners animate-pop" id="qrcode"></div>
-                <p class="text-center text-sm mt-2 animate-fade-in" style="color: var(--text-color);">Scan the QR code to open the shortened URL</p>
+                <p class="text-center text-sm mt-2 animate-fade-in" style="color: var(--text-color);">Scan the QR code
+                    to open the shortened URL</p>
             </div>
 
-            <div id="error" class="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 hidden fade-in max-w-md mx-auto pixel-corners animate-slide-in" role="alert">
+            <div id="error"
+                class="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 hidden fade-in max-w-md mx-auto pixel-corners animate-slide-in"
+                role="alert">
                 <p class="font-bold flex items-center">
                     <i data-lucide="alert-triangle" class="mr-2"></i> Error
                 </p>
@@ -443,15 +487,18 @@
         </div>
 
         <div id="history" class="tab-content hidden">
-            <h2 class="text-2xl font-semibold mb-4 animate-slide-in" style="color: var(--primary-color);">Your URL History</h2>
+            <h2 class="text-2xl font-semibold mb-4 animate-slide-in" style="color: var(--primary-color);">Your URL
+                History</h2>
             <div id="historyList" class="space-y-2">
                 <!-- History items will be dynamically added here -->
             </div>
         </div>
 
         <div id="stats" class="tab-content hidden">
-            <h2 class="text-2xl font-semibold mb-4 animate-slide-in" style="color: var(--primary-color);">URL Statistics</h2>
-            <div class="bg-opacity-50 backdrop-filter backdrop-blur-lg p-4 rounded-lg pixel-corners animate-fade-in" style="background-color: var(--background-color);">
+            <h2 class="text-2xl font-semibold mb-4 animate-slide-in" style="color: var(--primary-color);">URL Statistics
+            </h2>
+            <div class="bg-opacity-50 backdrop-filter backdrop-blur-lg p-4 rounded-lg pixel-corners animate-fade-in"
+                style="background-color: var(--background-color);">
                 <canvas id="statsChart" height="300"></canvas>
             </div>
         </div>
@@ -465,13 +512,12 @@
     <div id="toast" class="toast pixel-corners">URL copied to clipboard!</div>
 
     <script>
-        // Initialize Lucide icons
         lucide.createIcons();
 
         let urlHistory = [];
         let chart;
 
-        document.getElementById('shortenForm').addEventListener('submit', function(e) {
+        document.getElementById('shortenForm').addEventListener('submit', function (e) {
             e.preventDefault();
             document.getElementById('loading').style.display = 'flex';
             document.getElementById('result').classList.add('hidden');
@@ -485,30 +531,30 @@
                 return;
             }
 
-            fetch('/shorten', {
+            fetch('/api/shorten', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({url: url, custom_code: customCode})
+                body: JSON.stringify({ url: url, custom_code: customCode })
             })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('loading').style.display = 'none';
-                if (data.error) {
-                    showError(data.error);
-                } else {
-                    document.getElementById('shortUrl').value = data.short_url;
-                    document.getElementById('result').classList.remove('hidden');
-                    generateQRCode(data.short_url);
-                    addToHistory(data.original_url, data.short_url);
-                    updateStats();
-                }
-            })
-            .catch(error => {
-                document.getElementById('loading').style.display = 'none';
-                showError('An error occurred. Please try again.');
-            });
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    if (data.error) {
+                        showError(data.error);
+                    } else {
+                        document.getElementById('shortUrl').value = data.short_url;
+                        document.getElementById('result').classList.remove('hidden');
+                        generateQRCode(data.short_url);
+                        addToHistory(data.original_url, data.short_url);
+                        updateStats();
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('loading').style.display = 'none';
+                    showError('An error occurred. Please try again.');
+                });
         });
 
         function isValidUrl(string) {
@@ -516,7 +562,7 @@
                 new URL(string);
                 return true;
             } catch (_) {
-                return false;  
+                return false;
             }
         }
 
@@ -577,20 +623,20 @@
                 historyItem.style.backgroundColor = 'var(--background-color)';
                 historyItem.style.animationDelay = `${index * 0.1}s`;
                 historyItem.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="font-semibold" style="color: var(--primary-color);">${item.shortUrl}</p>
-                            <p class="text-sm" style="color: var(--text-color);">${item.originalUrl}</p>
-                        </div>
-                        <p class="text-sm" style="color: var(--text-color);">${new Date(item.timestamp).toLocaleString()}</p>
-                    </div>
-                `;
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="font-semibold" style="color: var(--primary-color);">${item.shortUrl}</p>
+                    <p class="text-sm" style="color: var(--text-color);">${item.originalUrl}</p>
+                </div>
+                <p class="text-sm" style="color: var(--text-color);">${new Date(item.timestamp).toLocaleString()}</p>
+            </div>
+        `;
                 historyList.appendChild(historyItem);
             });
         }
 
         function updateStats() {
-            fetch('/stats')
+            fetch('/api/stats')
                 .then(response => response.json())
                 .then(data => {
                     if (chart) {
@@ -645,7 +691,7 @@
         }
 
         // Mobile menu toggle
-        document.getElementById('menuToggle').addEventListener('click', function() {
+        document.getElementById('menuToggle').addEventListener('click', function () {
             const mobileNav = document.getElementById('mobileNav');
             mobileNav.classList.toggle('hidden');
         });
@@ -675,4 +721,5 @@
         });
     </script>
 </body>
+
 </html>

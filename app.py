@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, redirect, send_file
+from flask_cors import CORS
 from datetime import datetime, timedelta
 import string
 import random
@@ -8,6 +9,7 @@ import os
 import json
 
 app = Flask(__name__)
+CORS(app)
 
 # JSONbin setup
 JSONBIN_API_KEY = os.environ.get('JSONBIN_API_KEY')
@@ -19,7 +21,6 @@ headers = {
     "X-Master-Key": JSONBIN_API_KEY
 }
 
-# Helper functions
 def generate_short_code():
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(6))
@@ -41,7 +42,7 @@ def update_jsonbin_data(data):
 def index():
     return send_file('index.html')
 
-@app.route('/shorten', methods=['POST'])
+@app.route('/api/shorten', methods=['POST'])
 def shorten_url():
     data = request.json
     original_url = data.get('url')
@@ -87,7 +88,7 @@ def redirect_to_url(short_code):
             return redirect(url['original_url'])
     return "URL not found", 404
 
-@app.route('/stats')
+@app.route('/api/stats')
 def get_stats():
     end_date = datetime.utcnow()
     start_date = end_date - timedelta(days=7)
