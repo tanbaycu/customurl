@@ -1,3 +1,0 @@
-npx vercel link
-npx vercel env pull .env.development.local
-npm install @vercel/kv
