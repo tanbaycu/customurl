@@ -49,7 +49,7 @@ def is_valid_custom_code(code):
 
 @app.route('/')
 def index():
-    return send_file('templates/index.html')
+    return send_file('index.html')
 
 @app.route('/shorten', methods=['POST'])
 async def shorten_url():
