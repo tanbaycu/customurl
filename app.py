@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, send_file
 from flask_sqlalchemy import SQLAlchemy
 import string
 import random
@@ -41,7 +41,7 @@ def is_valid_custom_code(code):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return send_file('index.html')
 
 @app.route('/shorten', methods=['POST'])
 def shorten_url():
