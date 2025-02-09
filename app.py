@@ -69,7 +69,7 @@ async def get_stats():
     labels = [(end_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(7, 0, -1)]
     clicks = [0] * 7
     
-    async for key in kv.keys("url:*"):
+    async for key in kv.scan_iter("url:*"):
         url_data = await kv.get(key)
         created_at = datetime.fromisoformat(url_data['created_at'])
         if start_date <= created_at <= end_date:
