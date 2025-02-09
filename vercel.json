@@ -11,9 +11,5 @@
       "src": "/(.*)",
       "dest": "app.py"
     }
-  ],
-  "env": {
-    "EDGE_CONFIG_ID": "@edge_config_id",
-    "EDGE_CONFIG_TOKEN": "@edge_config_token"
-  }
+  ]
 }
