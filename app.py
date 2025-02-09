@@ -7,21 +7,24 @@ from datetime import datetime, timezone, timedelta
 import os
 import logging
 
-# Set up logging
+# Thiết lập logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Use the environment variable for the database URI
+# Sử dụng biến môi trường cho URI cơ sở dữ liệu
 database_url = os.environ.get('DATABASE_URL', 'postgres://neondb_owner:npg_O2vKW0eoQulF@ep-dry-recipe-a1hoplhj-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require')
 
-# If the URL starts with postgres://, replace it with postgresql://
+# Nếu URL bắt đầu bằng postgres://, thay thế bằng postgresql://
 if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "connect_args": {"sslmode": "require"}
+}
 db = SQLAlchemy(app)
 
 class Url(db.Model):
@@ -37,7 +40,7 @@ def generate_short_code():
     return ''.join(random.choice(characters) for _ in range(6))
 
 def is_valid_custom_code(code):
-    return re.match(r'^[a-zA-Z0-9-_]+$', code) is not None
+    return re.match(r'^[a-zA-Z0-9\-_]+$', code) is not None
 
 @app.route('/')
 def index():
@@ -48,6 +51,8 @@ def shorten_url():
     data = request.json
     original_url = data.get('url')
     custom_code = data.get('custom_code')
+
+    logger.debug(f"Received request: URL={original_url}, Custom Code={custom_code}")
 
     if not original_url:
         return jsonify({"error": "Please enter a valid URL."}), 400
@@ -97,12 +102,23 @@ def get_stats():
     
     return jsonify({"labels": labels, "clicks": clicks})
 
+@app.route('/check_db')
+def check_db():
+    try:
+        db.session.query(Url).first()
+        return "Database connection successful", 200
+    except Exception as e:
+        logger.error(f"Database connection failed: {str(e)}")
+        return f"Database connection failed: {str(e)}", 500
+
 def init_db():
     with app.app_context():
         db.create_all()
         logger.info("Database tables created successfully")
 
 if __name__ == '__main__':
-    init_db()
+    try:
+        init_db()
+    except Exception as e:
+        logger.error(f"Error initializing database: {str(e)}")
     app.run(debug=True)
-
