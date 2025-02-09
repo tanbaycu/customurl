@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced URL Shortener</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0B2447;
+            --secondary-color: #19376D;
+            --accent-color: #A5D7E8;
+            --background-color: #f0f4f8;
+            --text-color: #333;
+        }
+
+        .dark-mode {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #81E6D9;
+            --background-color: #1a202c;
+            --text-color: #f7fafc;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .input-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+
+        .input {
+            width: 100%;
+            padding: 10px 40px 10px 10px;
+            height: 50px;
+            border: 2px solid var(--primary-color);
+            border-top: none;
+            font-size: 16px;
+            background: transparent;
+            outline: none;
+            box-shadow: 7px 7px 0px 0px var(--primary-color);
+            transition: all 0.5s;
+            color: var(--text-color);
+        }
+
+        .input:focus {
+            box-shadow: none;
+        }
+
+        .label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: var(--primary-color);
+            transition: all 0.5s;
+            transform: scale(1);
+            z-index: 1;
+        }
+
+        .input:focus ~ .label,
+        .input:not(:placeholder-shown) ~ .label {
+            top: -10px;
+            transform: scale(0.8);
+            background-color: var(--background-color);
+            padding: 0 5px;
+        }
+
+        .topline, .underline {
+            position: absolute;
+            content: "";
+            background-color: var(--primary-color);
+            height: 2px;
+            right: 0;
+            transition: all 0.5s;
+        }
+
+        .topline {
+            width: 0%;
+            top: 0;
+        }
+
+        .underline {
+            width: 0%;
+            bottom: 0;
+        }
+
+        .input:focus ~ .topline {
+            width: 35%;
+        }
+
+        .input:focus ~ .underline {
+            width: 100%;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 5px 5px 0px 0px var(--secondary-color);
+        }
+
+        .btn:hover {
+            background-color: var(--secondary-color);
+            box-shadow: 2px 2px 0px 0px var(--primary-color);
+        }
+
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--primary-color);
+            border-top: 3px solid var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .result-container {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--primary-color);
+            box-shadow: 7px 7px 0px 0px var(--primary-color);
+            padding: 20px;
+            margin-top: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .result-container:hover {
+            box-shadow: 3px 3px 0px 0px var(--primary-color);
+            transform: translateY(-3px);
+        }
+
+        .icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+        }
+
+        .copy-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .copy-btn::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease-out, height 0.6s ease-out;
+        }
+
+        .copy-btn:active::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .qr-container {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 20px auto;
+            transition: all 0.3s ease;
+            padding: 10px;
+            background-color: white;
+            border: 2px solid var(--primary-color);
+            box-shadow: 5px 5px 0px 0px var(--primary-color);
+        }
+
+        .qr-container:hover {
+            transform: scale(1.05);
+            box-shadow: 2px 2px 0px 0px var(--primary-color);
+        }
+
+        .qr-container::after {
+            content: "Scan me!";
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            color: var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .qr-container:hover::after {
+            opacity: 1;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .custom-url-info {
+            font-size: 14px;
+            color: var(--text-color);
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        .short-url-display {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--primary-color);
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .short-url-display input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            color: var(--text-color);
+            background: transparent;
+        }
+
+        .copy-tooltip {
+            position: absolute;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .copy-btn:hover .copy-tooltip {
+            opacity: 1;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .desktop-menu {
+                display: none;
+            }
+            .mobile-menu {
+                display: block;
+            }
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        .theme-toggle i {
+            font-size: 24px;
+            color: var(--text-color);
+        }
+
+        .background-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(11, 36, 71, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(11, 36, 71, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+            z-index: -1;
+        }
+
+        .pixel-corners {
+            clip-path: 
+                polygon(
+                    0 5px, 5px 5px, 5px 0, 
+                    calc(100% - 5px) 0, calc(100% - 5px) 5px, 100% 5px, 
+                    100% calc(100% - 5px), calc(100% - 5px) calc(100% - 5px), calc(100% - 5px) 100%, 
+                    5px 100%, 5px calc(100% - 5px), 0 calc(100% - 5px)
+                );
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .animate-pop {
+            animation: pop 0.3s ease-out;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <div class="background-image"></div>
+    <header class="bg-opacity-50 backdrop-filter backdrop-blur-lg shadow-md pixel-corners">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold animate-pop" style="color: var(--primary-color);">URL Shortener</h1>
+            <nav class="desktop-menu">
+                <ul class="flex space-x-4">
+                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('shorten')">Shorten</a></li>
+                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('history')">History</a></li>
+                    <li><a href="#" class="hover:text-opacity-75 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('stats')">Stats</a></li>
+                </ul>
+            </nav>
+            <div class="flex items-center">
+                <button class="theme-toggle mr-4 animate-pop" onclick="toggleTheme()">
+                    <i data-lucide="sun"></i>
+                </button>
+                <div class="mobile-menu">
+                    <button id="menuToggle" class="animate-pop" style="color: var(--primary-color);">
+                        <i data-lucide="menu"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileNav" class="hidden bg-opacity-50 backdrop-filter backdrop-blur-lg shadow-md">
+            <ul class="py-2">
+                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('shorten')">Shorten</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('history')">History</a></li>
+                <li><a href="#" class="block px-4 py-2 hover:bg-opacity-25 hover:bg-gray-200 animate-slide-in" style="color: var(--primary-color);" onclick="showTab('stats')">Stats</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <div id="shorten" class="tab-content">
+            <form id="shortenForm" class="space-y-6 max-w-md mx-auto">
+                <div class="input-container pixel-corners animate-fade-in">
+                    <input type="url" name="url" id="url" class="input" placeholder=" " required>
+                    <label for="url" class="label">Enter your URL</label>
+                    <div class="topline"></div>
+                    <div class="underline"></div>
+                    <i data-lucide="link" class="icon"></i>
+                </div>
+                <div class="input-container pixel-corners animate-fade-in">
+                    <input type="text" name="custom_code" id="custom_code" class="input" placeholder=" " pattern="^[a-zA-Z0-9-_]+$">
+                    <label for="custom_code" class="label">Custom short code (optional)</label>
+                    <div class="topline"></div>
+                    <div class="underline"></div>
+                    <i data-lucide="tag" class="icon"></i>
+                </div>
+                <p class="custom-url-info">Leave blank for a randomly generated code. Use only letters, numbers, hyphens, and underscores.</p>
+                <button type="submit" class="btn w-full flex items-center justify-center pixel-corners animate-pop">
+                    <i data-lucide="scissors" class="mr-2"></i> Shorten URL
+                </button>
+            </form>
+
+            <div id="result" class="result-container hidden fade-in max-w-md mx-auto mt-8 pixel-corners">
+                <h2 class="text-xl font-semibold mb-4 flex items-center animate-slide-in" style="color: var(--primary-color);">
+                    <i data-lucide="check-circle" class="mr-2"></i> Your shortened URL:
+                </h2>
+                <div class="short-url-display pixel-corners animate-fade-in">
+                    <input type="text" id="shortUrl" readonly class="flex-grow bg-transparent">
+                    <button onclick="copyToClipboard()" class="copy-btn bg-opacity-50 backdrop-filter backdrop-blur-lg px-4 py-2 ml-2 hover:bg-opacity-75 transition duration-300 flex items-center relative pixel-corners" style="background-color: var(--primary-color);">
+                        <i data-lucide="copy" class="mr-2"></i> Copy
+                        <span class="copy-tooltip">Copy to clipboard</span>
+                    </button>
+                </div>
+                <div class="qr-container pixel-corners animate-pop" id="qrcode"></div>
+                <p class="text-center text-sm mt-2 animate-fade-in" style="color: var(--text-color);">Scan the QR code to open the shortened URL</p>
+            </div>
+
+            <div id="error" class="mt-4 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 hidden fade-in max-w-md mx-auto pixel-corners animate-slide-in" role="alert">
+                <p class="font-bold flex items-center">
+                    <i data-lucide="alert-triangle" class="mr-2"></i> Error
+                </p>
+                <p id="errorMessage"></p>
+            </div>
+        </div>
+
+        <div id="history" class="tab-content hidden">
+            <h2 class="text-2xl font-semibold mb-4 animate-slide-in" style="color: var(--primary-color);">Your URL History</h2>
+            <div id="historyList" class="space-y-2">
+                <!-- History items will be dynamically added here -->
+            </div>
+        </div>
+
+        <div id="stats" class="tab-content hidden">
+            <h2 class="text-2xl font-semibold mb-4 animate-slide-in" style="color: var(--primary-color);">URL Statistics</h2>
+            <div class="bg-opacity-50 backdrop-filter backdrop-blur-lg p-4 rounded-lg pixel-corners animate-fade-in" style="background-color: var(--background-color);">
+                <canvas id="statsChart" height="300"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <div class="loading" id="loading">
+        <div class="loading-spinner"></div>
+        <div class="loading-text" style="color: white;">Processing...</div>
+    </div>
+
+    <div id="toast" class="toast pixel-corners">URL copied to clipboard!</div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        let urlHistory = [];
+        let chart;
+
+        document.getElementById('shortenForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.getElementById('loading').style.display = 'flex';
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('error').classList.add('hidden');
+
+            const url = document.getElementById('url').value;
+            const customCode = document.getElementById('custom_code').value;
+
+            if (!isValidUrl(url)) {
+                showError('Please enter a valid URL');
+                return;
+            }
+
+            fetch('/shorten', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({url: url, custom_code: customCode})
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.error) {
+                    showError(data.error);
+                } else {
+                    document.getElementById('shortUrl').value = data.short_url;
+                    document.getElementById('result').classList.remove('hidden');
+                    generateQRCode(data.short_url);
+                    addToHistory(data.original_url, data.short_url);
+                    updateStats();
+                }
+            })
+            .catch(error => {
+                document.getElementById('loading').style.display = 'none';
+                showError('An error occurred. Please try again.');
+            });
+        });
+
+        function isValidUrl(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;  
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('error').classList.remove('hidden');
+        }
+
+        function copyToClipboard() {
+            const copyText = document.getElementById('shortUrl');
+            copyText.select();
+            document.execCommand('copy');
+            showToast('URL copied to clipboard!');
+        }
+
+        function generateQRCode(url) {
+            const qr = qrcode(0, 'M');
+            qr.addData(url);
+            qr.make();
+            document.getElementById('qrcode').innerHTML = qr.createImgTag(5);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function showTab(tabName) {
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.add('hidden'));
+            document.getElementById(tabName).classList.remove('hidden');
+
+            if (tabName === 'history') {
+                displayHistory();
+            } else if (tabName === 'stats') {
+                updateStats();
+            }
+        }
+
+        function addToHistory(originalUrl, shortUrl) {
+            urlHistory.unshift({ originalUrl, shortUrl, timestamp: new Date() });
+            if (urlHistory.length > 10) {
+                urlHistory.pop();
+            }
+            localStorage.setItem('urlHistory', JSON.stringify(urlHistory));
+        }
+
+        function displayHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+            urlHistory.forEach((item, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'bg-opacity-50 backdrop-filter backdrop-blur-lg shadow-md rounded-lg p-4 mb-4 pixel-corners animate-fade-in';
+                historyItem.style.backgroundColor = 'var(--background-color)';
+                historyItem.style.animationDelay = `${index * 0.1}s`;
+                historyItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold" style="color: var(--primary-color);">${item.shortUrl}</p>
+                            <p class="text-sm" style="color: var(--text-color);">${item.originalUrl}</p>
+                        </div>
+                        <p class="text-sm" style="color: var(--text-color);">${new Date(item.timestamp).toLocaleString()}</p>
+                    </div>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        function updateStats() {
+            fetch('/stats')
+                .then(response => response.json())
+                .then(data => {
+                    if (chart) {
+                        chart.destroy();
+                    }
+                    const ctx = document.getElementById('statsChart').getContext('2d');
+                    chart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: data.labels,
+                            datasets: [{
+                                label: 'URL Clicks',
+                                data: data.clicks,
+                                backgroundColor: 'rgba(11, 36, 71, 0.6)',
+                                borderColor: 'rgba(11, 36, 71, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+                                    }
+                                },
+                                x: {
+                                    ticks: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+                                    }
+                                }
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    labels: {
+                                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-color')
+                                    }
+                                }
+                            },
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeOutQuart'
+                            }
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching stats:', error);
+                });
+        }
+
+        // Mobile menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function() {
+            const mobileNav = document.getElementById('mobileNav');
+            mobileNav.classList.toggle('hidden');
+        });
+
+        // Theme toggle
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const themeIcon = document.querySelector('.theme-toggle i');
+            if (document.body.classList.contains('dark-mode')) {
+                themeIcon.setAttribute('data-lucide', 'moon');
+            } else {
+                themeIcon.setAttribute('data-lucide', 'sun');
+            }
+            lucide.createIcons();
+            if (chart) {
+                updateStats();
+            }
+        }
+
+        // Load history from localStorage on page load
+        window.addEventListener('load', () => {
+            const savedHistory = localStorage.getItem('urlHistory');
+            if (savedHistory) {
+                urlHistory = JSON.parse(savedHistory);
+            }
+            showTab('shorten');
+        });
+    </script>
+</body>
+</html>
+
